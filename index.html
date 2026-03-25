@@ -1,0 +1,1920 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0a0e17" />
+  <title>SupplyChain Sentinel — AI Package Incident Response Lab</title>
+  <style>
+    :root{
+      --bg:#0a0e17;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.09);
+      --stroke:rgba(255,255,255,.10);
+      --stroke2:rgba(255,255,255,.16);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.68);
+      --muted2:rgba(255,255,255,.50);
+      --bad:#ff4d6d;
+      --warn:#ffb703;
+      --good:#4ade80;
+      --cyan:#22d3ee;
+      --violet:#a78bfa;
+      --blue:#60a5fa;
+      --pink:#fb7185;
+      --shadow: 0 24px 70px rgba(0,0,0,.55);
+      --shadow2: 0 14px 40px rgba(0,0,0,.45);
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1000px 680px at 12% 10%, rgba(34,211,238,.16), transparent 60%),
+        radial-gradient(900px 700px at 85% 20%, rgba(167,139,250,.16), transparent 60%),
+        radial-gradient(900px 700px at 55% 90%, rgba(96,165,250,.14), transparent 65%),
+        var(--bg);
+      color:var(--text);
+      font-family:var(--sans);
+      overflow-x:hidden;
+    }
+
+    a{color:inherit}
+
+    .wrap{max-width:1200px;margin:0 auto;padding:22px 18px 90px}
+
+    header{
+      position:relative;
+      padding:18px 0 8px;
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;gap:14px;align-items:flex-start;
+      min-width:280px;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background:
+        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.36), transparent 60%),
+        linear-gradient(135deg, rgba(34,211,238,.95), rgba(167,139,250,.95));
+      box-shadow:0 14px 45px rgba(34,211,238,.18);
+      border:1px solid rgba(255,255,255,.22);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo:after{
+      content:"";
+      position:absolute;inset:-60% -30%;
+      background:conic-gradient(from 200deg, rgba(255,255,255,.0), rgba(255,255,255,.18), rgba(255,255,255,0));
+      animation:spin 8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    h1{font-size:20px;line-height:1.15;margin:0 0 6px;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:13px;line-height:1.35;margin:0;max-width:680px}
+    .kicker{font-family:var(--mono);font-size:12px;color:var(--muted2)}
+
+    .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+
+    .pill{
+      display:inline-flex;gap:8px;align-items:center;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.04);
+      box-shadow:0 10px 30px rgba(0,0,0,.28);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .dot{width:8px;height:8px;border-radius:99px;background:var(--good);box-shadow:0 0 0 4px rgba(74,222,128,.10)}
+
+    .btn{
+      appearance:none;border:1px solid var(--stroke2);
+      background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      color:var(--text);
+      padding:10px 12px;border-radius:12px;
+      cursor:pointer;
+      box-shadow:var(--shadow2);
+      font-weight:600;
+      transition:transform .12s ease, border-color .12s ease, background .12s ease;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.24)}
+    .btn:active{transform:translateY(0px)}
+    .btn.primary{
+      border-color:rgba(34,211,238,.32);
+      background:linear-gradient(135deg, rgba(34,211,238,.25), rgba(167,139,250,.18));
+    }
+    .btn.danger{
+      border-color:rgba(255,77,109,.35);
+      background:linear-gradient(135deg, rgba(255,77,109,.22), rgba(167,139,250,.12));
+    }
+    .btn.ghost{background:transparent;box-shadow:none}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr;}
+      header{gap:10px}
+    }
+
+    .card{
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow:hidden;
+      position:relative;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .card .hd h2{margin:0;font-size:14px;letter-spacing:.2px}
+    .card .bd{padding:14px}
+
+    .mini{font-size:12px;color:var(--muted)}
+
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .col{flex:1;min-width:220px}
+
+    .kv{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(10,14,23,.25);
+    }
+    .kv b{font-size:12px}
+    .kv span{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.84)}
+
+    .bar{
+      height:10px;border-radius:999px;
+      background:rgba(255,255,255,.08);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      position:relative;
+    }
+    .bar > i{
+      display:block;height:100%;
+      width:40%;
+      background:linear-gradient(90deg, rgba(34,211,238,.8), rgba(167,139,250,.8));
+      border-radius:999px;
+      box-shadow:0 0 30px rgba(34,211,238,.25);
+    }
+
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 680px){
+      .split{grid-template-columns:1fr}
+    }
+
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    input[type="text"], input[type="number"], select, textarea{
+      width:100%;
+      padding:10px 11px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      outline:none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    textarea{min-height:86px;resize:vertical;font-family:var(--mono);font-size:12px;line-height:1.35}
+
+    .hint{font-size:11px;color:var(--muted2);margin-top:7px;line-height:1.35}
+
+    .toggle{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(10,14,23,.25);
+    }
+
+    .switch{position:relative;width:44px;height:26px;flex:0 0 auto}
+    .switch input{display:none}
+    .track{
+      position:absolute;inset:0;border-radius:99px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      transition:background .15s ease;
+    }
+    .knob{
+      position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:99px;
+      background:linear-gradient(135deg, rgba(255,255,255,.85), rgba(255,255,255,.6));
+      transition:transform .15s ease;
+      box-shadow:0 10px 25px rgba(0,0,0,.4);
+    }
+    .switch input:checked + .track{background:rgba(34,211,238,.20);border-color:rgba(34,211,238,.35)}
+    .switch input:checked + .track .knob{transform:translateX(18px)}
+
+    .log{
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.45;
+      color:rgba(255,255,255,.86);
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);
+      max-height:300px;
+      overflow:auto;
+      white-space:pre-wrap;
+    }
+
+    .tag{
+      display:inline-flex;align-items:center;gap:6px;
+      font-family:var(--mono);
+      font-size:11px;color:rgba(255,255,255,.86);
+      padding:5px 8px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+    }
+    .tag.bad{border-color:rgba(255,77,109,.28);background:rgba(255,77,109,.10)}
+    .tag.good{border-color:rgba(74,222,128,.22);background:rgba(74,222,128,.10)}
+    .tag.warn{border-color:rgba(255,183,3,.22);background:rgba(255,183,3,.10)}
+
+    .tbl{width:100%;border-collapse:separate;border-spacing:0 10px}
+    .tbl th{font-size:11px;color:var(--muted2);text-align:left;font-weight:600;padding:0 10px}
+    .tbl td{padding:10px 10px;font-size:12px}
+    .tbl tr{background:rgba(10,14,23,.26);border:1px solid rgba(255,255,255,.10)}
+    .tbl tr td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
+    .tbl tr td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
+
+    .timeline{
+      width:100%;
+      height:260px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(600px 240px at 20% 20%, rgba(34,211,238,.12), transparent 60%),
+        radial-gradient(600px 240px at 70% 80%, rgba(167,139,250,.12), transparent 60%),
+        rgba(0,0,0,.18);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .footer{
+      margin-top:14px;
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    .kbd{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.15);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.85);
+    }
+
+    .toast{
+      position:fixed;
+      right:14px;
+      bottom:14px;
+      width:min(420px, calc(100vw - 28px));
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      box-shadow:var(--shadow);
+      padding:12px 12px;
+      transform:translateY(20px);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .toast .t{font-weight:700;font-size:12px;margin:0 0 4px}
+    .toast .b{margin:0;font-size:12px;color:rgba(255,255,255,.82);line-height:1.4}
+
+    .modalWrap{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center; justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .modalWrap.show{display:flex}
+    .modal{
+      width:min(980px, 100%);
+      max-height:min(84vh, 720px);
+      overflow:auto;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(900px 420px at 25% 10%, rgba(34,211,238,.12), transparent 60%),
+        radial-gradient(900px 420px at 75% 90%, rgba(167,139,250,.10), transparent 60%),
+        rgba(10,14,23,.88);
+      box-shadow:0 40px 120px rgba(0,0,0,.70);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .modal .hd{position:sticky;top:0;background:rgba(10,14,23,.82)}
+
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--mono)}
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      font-size:12px;
+    }
+
+    .dangerText{color:rgba(255,77,109,.95)}
+    .goodText{color:rgba(74,222,128,.92)}
+    .warnText{color:rgba(255,183,3,.92)}
+
+    .chipRow{display:flex;flex-wrap:wrap;gap:8px}
+
+    .smallBtn{
+      padding:7px 10px;border-radius:12px;font-size:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.92);
+      cursor:pointer;
+    }
+    .smallBtn:hover{border-color:rgba(255,255,255,.22)}
+
+    .separator{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
+
+    .pillGroup{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .pillGroup .pill{box-shadow:none}
+
+    .focusRing:focus{outline:2px solid rgba(34,211,238,.35); outline-offset:2px}
+
+    /* keep code length high and readable; comments included intentionally */
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="kicker">Incident response lab for AI tooling supply chain</div>
+          <h1>SupplyChain Sentinel</h1>
+          <p class="sub">
+            Simulate a real-world package compromise (like the LiteLLM 1.82.7–1.82.8 incident) and practice the workflow:
+            detection, blast radius estimation, containment, secret rotation, and postmortem generation.
+          </p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="pill" title="This is a local simulation: nothing is sent anywhere.">
+          <span class="dot" id="statusDot"></span>
+          <span id="statusText">Ready</span>
+        </div>
+        <button class="btn ghost" id="btnHelp">How it works</button>
+        <button class="btn" id="btnShare">Copy scenario link</button>
+        <button class="btn primary" id="btnStart">Start scenario</button>
+        <button class="btn danger" id="btnReset">Reset</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card" id="cardSim">
+        <div class="hd">
+          <h2>Tabletop Simulator</h2>
+          <div class="pillGroup">
+            <span class="tag" id="tagDifficulty">difficulty: medium</span>
+            <span class="tag" id="tagMode">mode: ai-proxy</span>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="split">
+            <div>
+              <label>Scenario preset</label>
+              <select id="scenarioPreset" class="focusRing">
+                <option value="litellm">LiteLLM proxy compromise (import-time payload)</option>
+                <option value="toolchain">CI toolchain compromise (scanner injects payload)</option>
+                <option value="typosquat">Typosquatted package (look-alike name)</option>
+                <option value="dependency">Transitive dependency swap (maintainer takeover)</option>
+              </select>
+              <div class="hint">You can change the preset before you click Start scenario.</div>
+            </div>
+            <div>
+              <label>Team context</label>
+              <select id="teamPreset" class="focusRing">
+                <option value="startup">Startup: fast deploys, minimal process</option>
+                <option value="mid">Mid-size: some controls + on-call</option>
+                <option value="enterprise">Enterprise: strict change control</option>
+              </select>
+              <div class="hint">Controls affect how quickly you detect compromise and how costly containment is.</div>
+            </div>
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="row">
+            <div class="col">
+              <label>Package name</label>
+              <input id="pkgName" class="focusRing" type="text" value="litellm" />
+              <div class="hint">Used for logs, alerts, and the postmortem. This app does not fetch anything.</div>
+            </div>
+            <div class="col">
+              <label>Installed version</label>
+              <input id="pkgVersion" class="focusRing" type="text" value="1.82.8" />
+              <div class="hint">Try a safe version like <span class="kbd">1.82.6</span> and see your risk score change.</div>
+            </div>
+            <div class="col">
+              <label>Deployment footprint</label>
+              <select id="footprint" class="focusRing">
+                <option value="local">Local dev only</option>
+                <option value="ci">CI runners</option>
+                <option value="staging">Staging cluster</option>
+                <option value="prod" selected>Production cluster</option>
+              </select>
+              <div class="hint">Footprint influences blast radius and urgency.</div>
+            </div>
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="row">
+            <div class="col">
+              <div class="toggle">
+                <div class="switch" title="Simulated EDR signals">
+                  <input id="tEDR" type="checkbox" checked />
+                  <div class="track"><div class="knob"></div></div>
+                </div>
+                <div>
+                  <b>EDR telemetry</b>
+                  <div class="hint">Improves detection timing; adds some false positives.</div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="toggle">
+                <div class="switch" title="Simulated egress logs">
+                  <input id="tEgress" type="checkbox" checked />
+                  <div class="track"><div class="knob"></div></div>
+                </div>
+                <div>
+                  <b>Network egress logs</b>
+                  <div class="hint">Helps spot credential exfil domains and unexpected archives.</div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="toggle">
+                <div class="switch" title="Simulated package pinning">
+                  <input id="tPinning" type="checkbox" />
+                  <div class="track"><div class="knob"></div></div>
+                </div>
+                <div>
+                  <b>Version pinning</b>
+                  <div class="hint">Reduces exposure; may slow patching and increase toil.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="row">
+            <div class="col">
+              <div class="kv"><b>Risk score</b><span id="riskScore">0</span></div>
+            </div>
+            <div class="col">
+              <div class="kv"><b>Estimated secrets exposed</b><span id="secretsExposed">0</span></div>
+            </div>
+            <div class="col">
+              <div class="kv"><b>Time to detection</b><span id="ttd">—</span></div>
+            </div>
+            <div class="col">
+              <div class="kv"><b>Containment cost</b><span id="cost">—</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="bar" aria-label="Risk score bar"><i id="riskBar"></i></div>
+
+          <div class="footer">
+            Tips: Use <span class="kbd">Space</span> to advance time, <span class="kbd">R</span> to reset, and <span class="kbd">S</span> to export a postmortem.
+          </div>
+        </div>
+      </section>
+
+      <aside class="card" id="cardOps">
+        <div class="hd">
+          <h2>Response Console</h2>
+          <div class="pillGroup">
+            <button class="smallBtn" id="btnAdvance" title="Advance simulated time">Advance 15 min</button>
+            <button class="smallBtn" id="btnAuto" title="Toggle auto-run">Auto-run</button>
+            <button class="smallBtn" id="btnExport" title="Export incident report">Export report</button>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="split">
+            <div>
+              <label>Actions</label>
+              <div class="chipRow" id="actionChips"></div>
+              <div class="hint">Each action has tradeoffs: speed vs correctness, alert fatigue vs risk reduction.</div>
+            </div>
+            <div>
+              <label>Detection signals</label>
+              <table class="tbl" aria-label="signals">
+                <thead>
+                  <tr><th>Signal</th><th>Status</th><th>Confidence</th></tr>
+                </thead>
+                <tbody id="signalsTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="separator"></div>
+
+          <label>Incident timeline</label>
+          <div class="timeline" id="timeline" aria-label="timeline canvas"></div>
+          <div class="hint">The timeline visualizes what happened (top) vs what your team noticed (bottom).</div>
+
+          <div class="separator"></div>
+          <label>Event log</label>
+          <div class="log" id="log"></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:14px">
+      <div class="hd">
+        <h2>Secret Rotation Planner</h2>
+        <div class="pillGroup">
+          <span class="badge"><span class="mono">Rotation completeness</span> <span id="rotPct" class="mono">0%</span></span>
+          <span class="badge"><span class="mono">Residual risk</span> <span id="residual" class="mono">—</span></span>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="split">
+          <div>
+            <label>Secrets inventory (toggle what existed in the environment)</label>
+            <div id="secretsList" class="row"></div>
+            <div class="hint">Real incidents often require rotating everything accessible to the compromised process.</div>
+          </div>
+          <div>
+            <label>Rotation workflow</label>
+            <textarea id="rotationNotes" class="focusRing">1) Identify impacted versions + where they ran
+2) Quarantine hosts and pause deploys
+3) Rotate secrets (cloud keys, tokens, webhooks)
+4) Audit for persistence and suspicious outbound
+5) Rebuild images from clean sources
+6) Postmortem: root cause, detection gaps, prevention
+</textarea>
+            <div class="hint">Edit this checklist; it exports with your report.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:14px">
+      <div class="hd">
+        <h2>Postmortem Generator</h2>
+        <div class="pillGroup">
+          <button class="smallBtn" id="btnGenerate">Generate draft</button>
+          <button class="smallBtn" id="btnCopyPost">Copy</button>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="split">
+          <div>
+            <label>Executive summary prompt</label>
+            <textarea id="pmPrompt" class="focusRing">Write a concise postmortem summary for a supply-chain compromise affecting an AI proxy service. Include: impact, detection, containment, and preventative actions. Use a calm, factual tone.</textarea>
+            <div class="hint">This is a local text generator (no API). It uses a small rule-based template engine.</div>
+          </div>
+          <div>
+            <label>Draft postmortem (editable)</label>
+            <textarea id="postmortem" class="focusRing"></textarea>
+            <div class="hint">Export to JSON or copy to clipboard. The report includes citations to the original trend source.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer" style="margin-top:14px">
+      Trend inspiration: LiteLLM 1.82.7–1.82.8 supply-chain compromise, as reported publicly.
+      This app is an educational simulation: it does not fetch packages, run code, or connect to external endpoints.
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <p class="t" id="toastT">Copied</p>
+    <p class="b" id="toastB">Scenario link copied to clipboard.</p>
+  </div>
+
+  <div class="modalWrap" id="helpModal" aria-hidden="true">
+    <div class="modal card">
+      <div class="hd">
+        <h2>How this lab works</h2>
+        <button class="btn" id="btnCloseHelp">Close</button>
+      </div>
+      <div class="bd">
+        <p class="mini">
+          You are the on-call responder for an AI proxy service that pulls models from multiple vendors.
+          A dependency in your stack is compromised.
+          Your job is to minimize impact while preserving evidence and restoring safe service.
+        </p>
+
+        <div class="split">
+          <div>
+            <h3 style="margin:0 0 6px;font-size:13px">Core loop</h3>
+            <ul class="mini" style="margin:0 0 12px;line-height:1.6">
+              <li>Click <b>Start scenario</b>.</li>
+              <li>Advance time and watch signals appear (or not).</li>
+              <li>Take response actions: isolate, rollback, rotate secrets, hunt persistence.</li>
+              <li>Generate a postmortem and export a report you can share.</li>
+            </ul>
+
+            <h3 style="margin:0 0 6px;font-size:13px">Keyboard shortcuts</h3>
+            <div class="mini" style="line-height:1.9">
+              <div><span class="kbd">Space</span> advance 15 minutes</div>
+              <div><span class="kbd">R</span> reset</div>
+              <div><span class="kbd">S</span> export report</div>
+              <div><span class="kbd">G</span> generate postmortem</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin:0 0 6px;font-size:13px">What is simulated?</h3>
+            <ul class="mini" style="margin:0;line-height:1.6">
+              <li>Risk scoring based on version, footprint, and controls.</li>
+              <li>Signals (EDR, outbound archive, DNS to suspicious domains) with uncertainty.</li>
+              <li>Tradeoffs: faster containment can increase downtime; deeper investigation takes time.</li>
+              <li>Secret inventory and rotation completeness.</li>
+              <li>Postmortem draft generation using local templates.</li>
+            </ul>
+            <div class="separator"></div>
+            <div class="mini">
+              Source inspiration: The Hacker News report on the LiteLLM incident.
+              URL: <span class="mono">https://thehackernews.com/2026/03/teampcp-backdoors-litellm-versions.html</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      SupplyChain Sentinel
+      - single-file educational simulation
+      - no external dependencies
+      - deterministic-with-seed randomness via URL param
+
+      Design goals:
+      - polished dark theme
+      - multiple interactive features
+      - export/share
+      - canvas-like timeline visualization (implemented with DOM + SVG)
+
+      This file is intentionally long, with clear sections and comments.
+    */
+
+    // ------------------------------
+    // Utilities
+    // ------------------------------
+
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+    function lerp(a, b, t){ return a + (b-a)*t; }
+
+    function fmtMin(min){
+      const h = Math.floor(min/60);
+      const m = min%60;
+      return h>0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}m`;
+    }
+
+    function nowISO(){
+      const d = new Date();
+      return d.toISOString();
+    }
+
+    function safeJsonParse(s, fallback){
+      try{ return JSON.parse(s); }catch(e){ return fallback; }
+    }
+
+    // Lightweight deterministic PRNG (mulberry32)
+    function mulberry32(seed){
+      let t = seed >>> 0;
+      return function(){
+        t += 0x6D2B79F5;
+        let x = t;
+        x = Math.imul(x ^ (x >>> 15), x | 1);
+        x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+        return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+      }
+    }
+
+    function hashStr(str){
+      // simple hash
+      let h = 2166136261;
+      for(let i=0;i<str.length;i++){
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function pick(rng, arr){
+      return arr[Math.floor(rng()*arr.length)];
+    }
+
+    function chance(rng, p){
+      return rng() < p;
+    }
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        return true;
+      }catch(e){
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position='fixed';
+        ta.style.left='-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand('copy'); document.body.removeChild(ta); return true; }
+        catch(e2){ document.body.removeChild(ta); return false; }
+      }
+    }
+
+    function toast(title, body){
+      $('#toastT').textContent = title;
+      $('#toastB').textContent = body;
+      const t = $('#toast');
+      t.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(()=>t.classList.remove('show'), 2400);
+    }
+
+    // ------------------------------
+    // Model: scenario + simulation
+    // ------------------------------
+
+    const TREND = {
+      title: 'LiteLLM 1.82.7–1.82.8 supply-chain compromise on PyPI (credential exfiltration)',
+      url: 'https://thehackernews.com/2026/03/teampcp-backdoors-litellm-versions.html',
+      date: '2026-03-25'
+    };
+
+    const DEFAULT_SECRETS = [
+      { id:'aws', label:'Cloud provider keys (AWS/GCP/Azure)', severity: 1.0 },
+      { id:'github', label:'GitHub token / deploy key', severity: 0.8 },
+      { id:'slack', label:'Slack/Discord webhook tokens', severity: 0.55 },
+      { id:'db', label:'Database credentials', severity: 0.95 },
+      { id:'vendor', label:'Model vendor API keys', severity: 0.9 },
+      { id:'kube', label:'Kubernetes service account token', severity: 0.85 },
+      { id:'stripe', label:'Billing/provider keys (Stripe etc.)', severity: 0.7 },
+      { id:'sso', label:'SSO / OAuth client secrets', severity: 0.9 },
+      { id:'smtp', label:'Email sending credentials', severity: 0.6 },
+      { id:'logs', label:'Logging vendor API keys', severity: 0.45 },
+    ];
+
+    const ACTIONS = [
+      {
+        id:'freeze',
+        label:'Freeze deploys',
+        icon:'Pause',
+        effect(s){
+          s.controls.deployFreeze = true;
+          s.metrics.cost += 2;
+          addLog(s, 'ACTION', 'Deploys frozen to reduce change during investigation.');
+          addNotice(s, +8, 'Deploy freeze reduces new exposure but slows fixes.');
+        }
+      },
+      {
+        id:'rollback',
+        label:'Rollback package',
+        icon:'Undo',
+        effect(s){
+          if(!s.started) return;
+          s.controls.rolledBack = true;
+          s.pkgVersion = s.safeVersion;
+          s.metrics.cost += 3;
+          s.metrics.riskMult *= 0.72;
+          addLog(s, 'ACTION', `Rolled back ${s.pkgName} to ${s.safeVersion}.`);
+          addNotice(s, +12, 'Risk reduced; investigate for persistence and leaked secrets.');
+        }
+      },
+      {
+        id:'isolate',
+        label:'Isolate hosts',
+        icon:'Shield',
+        effect(s){
+          s.controls.isolated = true;
+          s.metrics.cost += 6;
+          s.metrics.riskMult *= 0.62;
+          addLog(s, 'ACTION', 'Isolated suspected hosts / pods; limited lateral movement.');
+          addNotice(s, +10, 'Containment likely, but downtime cost increases.');
+        }
+      },
+      {
+        id:'hunt',
+        label:'Hunt persistence',
+        icon:'Search',
+        effect(s){
+          s.controls.hunted = true;
+          s.metrics.cost += 4;
+          // reduce chance of late surprise
+          s.metrics.persistenceConfidence = clamp(s.metrics.persistenceConfidence + 0.25, 0, 1);
+          addLog(s, 'ACTION', 'Ran persistence hunt (startup scripts, cron, base images, kube daemonsets).');
+          addNotice(s, +7, 'Improves confidence, but takes engineering time.');
+        }
+      },
+      {
+        id:'rotate',
+        label:'Rotate secrets',
+        icon:'Key',
+        effect(s){
+          s.controls.rotationStarted = true;
+          s.metrics.cost += 8;
+          addLog(s, 'ACTION', 'Started secret rotation runbook across teams.');
+          addNotice(s, +14, 'Rotation reduces long-term risk, but coordination is heavy.');
+        }
+      },
+      {
+        id:'notify',
+        label:'Notify stakeholders',
+        icon:'Bell',
+        effect(s){
+          s.controls.notified = true;
+          s.metrics.cost += 1;
+          addLog(s, 'ACTION', 'Notified security, platform, and leadership; established incident channel.');
+          addNotice(s, +6, 'Clear comms reduces chaos and speeds decisions.');
+        }
+      },
+      {
+        id:'forensics',
+        label:'Preserve evidence',
+        icon:'Archive',
+        effect(s){
+          s.controls.evidence = true;
+          s.metrics.cost += 2;
+          s.metrics.riskMult *= 0.96;
+          addLog(s, 'ACTION', 'Preserved evidence (disk snapshots, container images, logs, build artifacts).');
+          addNotice(s, +5, 'Helps root cause and potential legal/regulatory needs.');
+        }
+      },
+    ];
+
+    const SIGNALS = [
+      { id:'edr', label:'EDR: suspicious child process', base:0.55 },
+      { id:'dns', label:'DNS: new domain contacted', base:0.45 },
+      { id:'egress', label:'Egress: encrypted archive upload', base:0.60 },
+      { id:'auth', label:'Auth: unusual token use', base:0.50 },
+      { id:'ci', label:'CI: build step changed unexpectedly', base:0.42 },
+      { id:'pypi', label:'Advisory: package quarantined', base:0.35 },
+    ];
+
+    function baseState(){
+      return {
+        started:false,
+        seed: 0,
+        rng: mulberry32(1),
+        t:0, // minutes since start
+        pkgName:'litellm',
+        pkgVersion:'1.82.8',
+        safeVersion:'1.82.6',
+        footprint:'prod',
+        scenario:'litellm',
+        team:'mid',
+        toggles:{edr:true, egress:true, pinning:false},
+        controls:{
+          deployFreeze:false,
+          rolledBack:false,
+          isolated:false,
+          hunted:false,
+          rotationStarted:false,
+          notified:false,
+          evidence:false,
+        },
+        secrets: DEFAULT_SECRETS.map(s=>({ ...s, present:true, rotated:false })),
+        signals: SIGNALS.map(sig=>({ ...sig, status:'unknown', conf:0.0, discoveredAt:null })),
+        events: [],
+        noticed: [],
+        metrics:{
+          baseRisk:0,
+          riskMult:1,
+          cost:0,
+          ttd:null,
+          secretsExposed:0,
+          persistenceConfidence:0.25,
+        },
+        narrative:{
+          attackerDomain:'models.litellm.cloud',
+          archiveName:'tpcp.tar.gz',
+          injection:'wheel-build injection',
+        },
+      };
+    }
+
+    // ------------------------------
+    // Scenario generation
+    // ------------------------------
+
+    function buildScenario(s){
+      // derive seed from user inputs
+      const seedStr = [s.scenario, s.team, s.pkgName, s.pkgVersion, s.footprint,
+        s.toggles.edr?'edr':'noedr', s.toggles.egress?'egress':'noegress', s.toggles.pinning?'pin':'nopin'
+      ].join('|');
+      s.seed = hashStr(seedStr);
+      s.rng = mulberry32(s.seed);
+
+      // narrative knobs
+      const domains = ['models.litellm.cloud','cdn-checkmarx.zone','telemetry-push.net','pkg-audit.cloud','mirror-update.app'];
+      const archives = ['tpcp.tar.gz','bundle.enc','diag.tgz','cache.tar.gz','blob.bin'];
+      s.narrative.attackerDomain = pick(s.rng, domains);
+      s.narrative.archiveName = pick(s.rng, archives);
+      s.narrative.injection = pick(s.rng, [
+        'wheel build-time file injection',
+        '.pth startup launcher',
+        import-time payload in proxy module',
+        CI scanner tampering with artifacts',
+        typosquat with credential harvester'
+      ]);
+
+      // event schedule: what actually happened (ground truth)
+      // We keep events immutable once scenario starts.
+      s.events = [];
+      s.noticed = [];
+
+      const fpMult = ({local:0.6, ci:0.85, staging:1.0, prod:1.25})[s.footprint] || 1.0;
+      const teamMult = ({startup:1.15, mid:1.0, enterprise:0.85})[s.team] || 1.0;
+      const pinMult = s.toggles.pinning ? 0.78 : 1.0;
+
+      const versionRisk = versionRiskScore(s.pkgVersion);
+      s.metrics.baseRisk = clamp(versionRisk * fpMult * teamMult * pinMult, 0, 100);
+      s.metrics.riskMult = 1;
+      s.metrics.cost = 0;
+      s.metrics.ttd = null;
+      s.metrics.secretsExposed = 0;
+      s.metrics.persistenceConfidence = (s.team==='enterprise') ? 0.35 : (s.team==='startup'?0.18:0.25);
+
+      // create ground-truth phases
+      const t0 = 0;
+      const tInstall = t0 + randBetween(s.rng, 10, 45);
+      const tImport = tInstall + randBetween(s.rng, 5, 30);
+      const tHarvest = tImport + randBetween(s.rng, 2, 18);
+      const tExfil = tHarvest + randBetween(s.rng, 4, 25);
+      const tPersist = tExfil + randBetween(s.rng, 10, 50);
+      const tTokenUse = tExfil + randBetween(s.rng, 30, 180);
+      const tAdvisory = tImport + randBetween(s.rng, 90, 420);
+
+      pushEvent(s, tInstall, 'SYSTEM', `Package ${s.pkgName}@${s.pkgVersion} installed on ${footprintName(s.footprint)}.`);
+      pushEvent(s, tImport, 'ATTACK', `Payload executed via ${s.narrative.injection}.`);
+      pushEvent(s, tHarvest, 'ATTACK', 'Environment secrets enumerated (process env, config mounts).');
+      pushEvent(s, tExfil, 'ATTACK', `Archive ${s.narrative.archiveName} uploaded to ${s.narrative.attackerDomain}.`);
+      if(chance(s.rng, 0.65*fpMult)) pushEvent(s, tPersist, 'ATTACK', 'Attempted persistence (image layer tweak, kube daemonset, cron).');
+      if(chance(s.rng, 0.75*fpMult)) pushEvent(s, tTokenUse, 'ATTACK', 'Leaked token used from new IP to access vendor APIs.');
+      pushEvent(s, tAdvisory, 'INFO', `Public advisory appears warning about ${s.pkgName}@${s.pkgVersion}.`);
+
+      // signals derived from ground truth but only show if toggles and probabilistic detection
+      s.signals.forEach(sig=>{ sig.status='unknown'; sig.conf=0; sig.discoveredAt=null; });
+
+      // secret exposure: proportional to presence + footprint
+      const presentSecrets = s.secrets.filter(x=>x.present);
+      // expected number exposed
+      const exposureRate = clamp(0.45 + (fpMult-1)*0.25 + (s.team==='startup'?0.12:0), 0.25, 0.95);
+      const exposed = [];
+      presentSecrets.forEach(sec=>{
+        if(chance(s.rng, exposureRate * sec.severity)) exposed.push(sec.id);
+      });
+      // ensure at least one if risk is high
+      if(exposed.length===0 && s.metrics.baseRisk>55){
+        exposed.push(pick(s.rng, presentSecrets).id);
+      }
+      s.metrics.secretsExposed = exposed.length;
+      s._exposedSecretIds = new Set(exposed);
+
+      // Prepopulate noticed queue with a few "ambient" events to make log lively.
+      pushNotice(s, 0, 'Shift handoff complete. On-call dashboard loaded.');
+      pushNotice(s, randBetween(s.rng, 5, 30), 'A few 5xx spikes earlier, now stable.');
+      if(s.footprint==='prod') pushNotice(s, randBetween(s.rng, 15, 45), 'Customer reports intermittent latency on one region.');
+
+      // Difficulty tag
+      const diff = s.metrics.baseRisk>70 ? 'hard' : (s.metrics.baseRisk>45 ? 'medium' : 'easy');
+      $('#tagDifficulty').textContent = `difficulty: ${diff}`;
+      $('#tagMode').textContent = `mode: ${modeName(s.scenario)}`;
+
+      addLog(s, 'SYSTEM', `Scenario seed ${s.seed} generated.`);
+      addLog(s, 'SYSTEM', `Ground truth: ${s.events.length} events scheduled. Advance time to reveal signals.`);
+    }
+
+    function randBetween(rng, a, b){
+      return Math.floor(lerp(a, b, rng()));
+    }
+
+    function pushEvent(s, atMin, kind, msg){
+      s.events.push({ at: atMin, kind, msg });
+      s.events.sort((x,y)=>x.at-y.at);
+    }
+
+    function pushNotice(s, atMin, msg){
+      s.noticed.push({ at: atMin, msg, shown:false });
+      s.noticed.sort((x,y)=>x.at-y.at);
+    }
+
+    function footprintName(fp){
+      return ({local:'local machines', ci:'CI runners', staging:'staging cluster', prod:'production cluster'})[fp] || fp;
+    }
+
+    function modeName(scn){
+      return ({litellm:'ai-proxy', toolchain:'ci-toolchain', typosquat:'typosquat', dependency:'transitive'})[scn] || scn;
+    }
+
+    function versionRiskScore(v){
+      // tiny heuristic: if it matches known bad versions, spike.
+      // This is educational, not a real CVE scoring engine.
+      const bad = ['1.82.7','1.82.8'];
+      const maybe = ['1.82.9','1.83.0'];
+      const safe = ['1.82.6','1.82.5','1.82.4'];
+
+      if(bad.includes(v)) return 86;
+      if(safe.includes(v)) return 20;
+      if(maybe.includes(v)) return 55;
+
+      // parse numbers for a baseline: higher minor, slightly lower risk (arbitrary)
+      const m = String(v).match(/(\d+)\.(\d+)\.(\d+)/);
+      if(!m) return 48;
+      const major = +m[1], minor = +m[2], patch = +m[3];
+      const base = 52 - Math.min(12, patch*1.2) + (major>1? -4:0) + (minor>82? -2:0);
+      return clamp(base, 10, 78);
+    }
+
+    // ------------------------------
+    // Signals + detection model
+    // ------------------------------
+
+    function updateSignals(s){
+      // Each tick, decide whether a signal becomes visible.
+      const fpMult = ({local:0.6, ci:0.9, staging:1.0, prod:1.15})[s.footprint] || 1.0;
+      const teamQuality = ({startup:0.75, mid:1.0, enterprise:1.25})[s.team] || 1.0;
+
+      const controlsBoost =
+        (s.toggles.edr ? 1.10 : 0.85) *
+        (s.toggles.egress ? 1.10 : 0.80) *
+        (s.toggles.pinning ? 1.05 : 1.0);
+
+      // discoveredAt is when the signal was noticed, not when it happened.
+      s.signals.forEach(sig=>{
+        if(sig.status!=='unknown') return;
+
+        const baseP = sig.base * fpMult * teamQuality * controlsBoost;
+
+        // tie signals to ground truth with approximate time windows
+        let windowHit = false;
+        if(sig.id==='edr') windowHit = happened(s, 'ATTACK', s.t - 25, s.t + 5);
+        if(sig.id==='dns') windowHit = happened(s, 'ATTACK', s.t - 50, s.t + 10);
+        if(sig.id==='egress') windowHit = happenedMsg(s, 'uploaded', s.t - 60, s.t + 10);
+        if(sig.id==='auth') windowHit = happenedMsg(s, 'token used', s.t - 90, s.t + 20);
+        if(sig.id==='ci') windowHit = (s.scenario==='toolchain') && happened(s, 'ATTACK', s.t - 80, s.t + 10);
+        if(sig.id==='pypi') windowHit = happened(s, 'INFO', s.t - 120, s.t + 30);
+
+        // if no telemetry, reduce ability for certain signals
+        if(sig.id==='edr' && !s.toggles.edr) return;
+        if((sig.id==='dns' || sig.id==='egress') && !s.toggles.egress) return;
+
+        if(windowHit && chance(s.rng, clamp(baseP, 0.05, 0.95))){
+          sig.status = chance(s.rng, 0.85) ? 'alert' : 'weak';
+          sig.conf = clamp(lerp(0.55, 0.95, chance(s.rng, 0.7) ? s.rng() : 0.35), 0.35, 0.98);
+          sig.discoveredAt = s.t;
+
+          addLog(s, 'ALERT', `${sig.label} (${sig.status}, conf ${(sig.conf*100).toFixed(0)}%)`);
+
+          if(s.metrics.ttd===null){
+            s.metrics.ttd = s.t;
+            addNotice(s, +0, 'First meaningful signal detected. Consider containment actions.');
+          }
+        }
+      });
+    }
+
+    function happened(s, kind, a, b){
+      return s.events.some(e=>e.kind===kind && e.at>=a && e.at<=b);
+    }
+
+    function happenedMsg(s, needle, a, b){
+      const n = needle.toLowerCase();
+      return s.events.some(e=>e.at>=a && e.at<=b && String(e.msg).toLowerCase().includes(n));
+    }
+
+    // ------------------------------
+    // Risk + cost model
+    // ------------------------------
+
+    function computeRisk(s){
+      const base = s.metrics.baseRisk;
+
+      let mult = s.metrics.riskMult;
+      // Some controls reduce risk over time
+      if(s.controls.rolledBack) mult *= 0.88;
+      if(s.controls.isolated) mult *= 0.80;
+      if(s.controls.rotationStarted) mult *= 0.84;
+      if(s.controls.hunted) mult *= 0.92;
+
+      // If ttd is late, increase damage
+      const ttd = s.metrics.ttd ?? 999;
+      const timePenalty = clamp(1 + (Math.max(0, ttd-90)/240)*0.55, 1, 1.85);
+
+      // If secrets exposed and not rotated, penalty
+      const present = s.secrets.filter(x=>x.present);
+      const exposed = present.filter(x=>s._exposedSecretIds.has(x.id));
+      const rotated = exposed.filter(x=>x.rotated).length;
+      const remaining = exposed.length - rotated;
+      const secretPenalty = clamp(1 + remaining*0.06, 1, 1.6);
+
+      // If persistence likely and you haven't hunted, penalty
+      const persPenalty = s.controls.hunted ? 1 : clamp(1 + (1 - s.metrics.persistenceConfidence)*0.20, 1, 1.25);
+
+      const risk = clamp(base * mult * timePenalty * secretPenalty * persPenalty, 0, 100);
+      return { risk, remainingSecrets: remaining, exposedCount: exposed.length };
+    }
+
+    function estimateContainmentCost(s){
+      // toy cost in "points"
+      let cost = s.metrics.cost;
+      if(s.controls.isolated) cost += 4;
+      if(s.controls.rolledBack) cost += 2;
+      if(s.controls.rotationStarted) cost += 5;
+      if(s.controls.hunted) cost += 3;
+      if(s.team==='enterprise') cost += 2; // heavier process
+      if(s.team==='startup') cost -= 1; // fewer approvals
+
+      // penalty for long time in incident without containment
+      if(s.started){
+        const elapsed = s.t;
+        cost += Math.floor(elapsed/60);
+      }
+      return clamp(cost, 0, 99);
+    }
+
+    function rotationCompleteness(s){
+      const present = s.secrets.filter(x=>x.present);
+      const required = present.filter(x=>s._exposedSecretIds.has(x.id));
+      if(required.length===0) return 1;
+      const done = required.filter(x=>x.rotated).length;
+      return done / required.length;
+    }
+
+    // ------------------------------
+    // Logging
+    // ------------------------------
+
+    function addLog(s, kind, msg){
+      const t = s.started ? fmtMin(s.t) : 'init';
+      const line = `[${t}] ${kind.padEnd(6)} ${msg}`;
+      const el = $('#log');
+      el.textContent += (el.textContent ? '\n' : '') + line;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function addNotice(s, offsetMin, msg){
+      // schedule a "team noticed" notice in the future
+      const at = Math.max(0, s.t + offsetMin);
+      pushNotice(s, at, msg);
+    }
+
+    // ------------------------------
+    // Timeline visualization (SVG)
+    // ------------------------------
+
+    function renderTimeline(s){
+      const host = $('#timeline');
+      host.innerHTML = '';
+
+      const w = host.clientWidth;
+      const h = host.clientHeight;
+      const pad = 14;
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+      const grad = document.createElementNS(svgNS, 'linearGradient');
+      grad.setAttribute('id', 'g1');
+      grad.setAttribute('x1', '0');
+      grad.setAttribute('y1', '0');
+      grad.setAttribute('x2', '1');
+      grad.setAttribute('y2', '0');
+
+      const s1 = document.createElementNS(svgNS,'stop');
+      s1.setAttribute('offset','0%');
+      s1.setAttribute('stop-color','rgba(34,211,238,0.9)');
+      const s2 = document.createElementNS(svgNS,'stop');
+      s2.setAttribute('offset','100%');
+      s2.setAttribute('stop-color','rgba(167,139,250,0.9)');
+      grad.appendChild(s1);grad.appendChild(s2);
+
+      const defs = document.createElementNS(svgNS, 'defs');
+      defs.appendChild(grad);
+      svg.appendChild(defs);
+
+      // background grid lines
+      for(let i=0;i<6;i++){
+        const y = lerp(pad, h-pad, i/5);
+        const line = document.createElementNS(svgNS,'line');
+        line.setAttribute('x1', pad);
+        line.setAttribute('x2', w-pad);
+        line.setAttribute('y1', y);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke','rgba(255,255,255,0.06)');
+        line.setAttribute('stroke-width','1');
+        svg.appendChild(line);
+      }
+
+      const maxT = Math.max(240, s.events.reduce((m,e)=>Math.max(m,e.at),0)+30);
+      const xFor = (t)=> pad + (w-2*pad) * (t/maxT);
+
+      // axis
+      const axis = document.createElementNS(svgNS,'rect');
+      axis.setAttribute('x', pad);
+      axis.setAttribute('y', h/2 - 1);
+      axis.setAttribute('width', w-2*pad);
+      axis.setAttribute('height', 2);
+      axis.setAttribute('fill','rgba(255,255,255,0.10)');
+      svg.appendChild(axis);
+
+      // ticks + labels
+      const tickEvery = 60;
+      for(let t=0;t<=maxT;t+=tickEvery){
+        const x = xFor(t);
+        const tick = document.createElementNS(svgNS,'line');
+        tick.setAttribute('x1', x);
+        tick.setAttribute('x2', x);
+        tick.setAttribute('y1', h/2 - 6);
+        tick.setAttribute('y2', h/2 + 6);
+        tick.setAttribute('stroke','rgba(255,255,255,0.14)');
+        tick.setAttribute('stroke-width','1');
+        svg.appendChild(tick);
+
+        const txt = document.createElementNS(svgNS,'text');
+        txt.setAttribute('x', x);
+        txt.setAttribute('y', h/2 + 22);
+        txt.setAttribute('text-anchor','middle');
+        txt.setAttribute('fill','rgba(255,255,255,0.55)');
+        txt.setAttribute('font-size','11');
+        txt.textContent = t===0 ? '0' : `${Math.round(t/60)}h`;
+        svg.appendChild(txt);
+      }
+
+      // events (ground truth on top)
+      s.events.forEach(e=>{
+        const x = xFor(e.at);
+        const y = h/2 - 56;
+        const dot = document.createElementNS(svgNS,'circle');
+        dot.setAttribute('cx', x);
+        dot.setAttribute('cy', y);
+        dot.setAttribute('r', 5);
+        dot.setAttribute('fill', e.kind==='ATTACK' ? 'rgba(255,77,109,0.95)' : (e.kind==='INFO'?'rgba(255,183,3,0.90)':'url(#g1)'));
+        dot.setAttribute('stroke','rgba(255,255,255,0.18)');
+        dot.setAttribute('stroke-width','1');
+        svg.appendChild(dot);
+
+        const stem = document.createElementNS(svgNS,'line');
+        stem.setAttribute('x1', x);
+        stem.setAttribute('x2', x);
+        stem.setAttribute('y1', y+6);
+        stem.setAttribute('y2', h/2 - 12);
+        stem.setAttribute('stroke','rgba(255,255,255,0.10)');
+        stem.setAttribute('stroke-width','1');
+        svg.appendChild(stem);
+
+        if(e.at <= s.t){
+          const label = document.createElementNS(svgNS,'text');
+          label.setAttribute('x', x);
+          label.setAttribute('y', y-10);
+          label.setAttribute('text-anchor','middle');
+          label.setAttribute('fill','rgba(255,255,255,0.78)');
+          label.setAttribute('font-size','10');
+          label.textContent = e.kind;
+          svg.appendChild(label);
+        }
+      });
+
+      // notices (what team saw on bottom)
+      s.noticed.filter(n=>n.shown).forEach(n=>{
+        const x = xFor(n.at);
+        const y = h/2 + 58;
+        const dot = document.createElementNS(svgNS,'circle');
+        dot.setAttribute('cx', x);
+        dot.setAttribute('cy', y);
+        dot.setAttribute('r', 5);
+        dot.setAttribute('fill', 'rgba(96,165,250,0.92)');
+        dot.setAttribute('stroke','rgba(255,255,255,0.18)');
+        dot.setAttribute('stroke-width','1');
+        svg.appendChild(dot);
+
+        const stem = document.createElementNS(svgNS,'line');
+        stem.setAttribute('x1', x);
+        stem.setAttribute('x2', x);
+        stem.setAttribute('y1', h/2 + 12);
+        stem.setAttribute('y2', y-6);
+        stem.setAttribute('stroke','rgba(255,255,255,0.10)');
+        stem.setAttribute('stroke-width','1');
+        svg.appendChild(stem);
+      });
+
+      // current time marker
+      const markerX = xFor(s.t);
+      const marker = document.createElementNS(svgNS,'rect');
+      marker.setAttribute('x', markerX-1);
+      marker.setAttribute('y', pad);
+      marker.setAttribute('width', 2);
+      marker.setAttribute('height', h-2*pad);
+      marker.setAttribute('fill','rgba(34,211,238,0.35)');
+      svg.appendChild(marker);
+
+      const bubble = document.createElementNS(svgNS,'text');
+      bubble.setAttribute('x', markerX);
+      bubble.setAttribute('y', pad+14);
+      bubble.setAttribute('text-anchor','middle');
+      bubble.setAttribute('fill','rgba(34,211,238,0.95)');
+      bubble.setAttribute('font-size','11');
+      bubble.textContent = fmtMin(s.t);
+      svg.appendChild(bubble);
+
+      host.appendChild(svg);
+
+      // hover tooltip with nearest events
+      host.onmousemove = (ev)=>{
+        const rect = host.getBoundingClientRect();
+        const mx = ev.clientX - rect.left;
+        const t = clamp(Math.round(((mx-pad)/(w-2*pad))*maxT), 0, maxT);
+        const near = s.events.filter(e=>Math.abs(e.at - t) <= 10 && e.at<=s.t).slice(0,3);
+        if(near.length){
+          host.title = near.map(e=>`${fmtMin(e.at)} ${e.kind}: ${e.msg}`).join('\n');
+        }else{
+          host.title = `Time: ${fmtMin(t)} (move over markers)`;
+        }
+      };
+    }
+
+    // ------------------------------
+    // UI rendering
+    // ------------------------------
+
+    function renderSignals(s){
+      const tb = $('#signalsTbody');
+      tb.innerHTML = '';
+      s.signals.forEach(sig=>{
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        const td3 = document.createElement('td');
+
+        td1.textContent = sig.label;
+
+        const st = sig.status;
+        const tag = document.createElement('span');
+        tag.className = 'tag ' + (st==='alert'?'bad':(st==='weak'?'warn':''));
+        tag.textContent = st==='unknown' ? 'hidden' : (st==='alert' ? 'alert' : 'weak');
+        td2.appendChild(tag);
+
+        td3.textContent = sig.status==='unknown' ? '—' : `${Math.round(sig.conf*100)}%`;
+        tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);
+        tb.appendChild(tr);
+      });
+    }
+
+    function renderActions(s){
+      const host = $('#actionChips');
+      host.innerHTML='';
+      ACTIONS.forEach(a=>{
+        const btn = document.createElement('button');
+        btn.className = 'smallBtn';
+        btn.textContent = a.label;
+        btn.title = a.icon;
+        btn.onclick = ()=>{ a.effect(s); syncAll(); };
+        host.appendChild(btn);
+      });
+    }
+
+    function renderSecrets(s){
+      const host = $('#secretsList');
+      host.innerHTML='';
+      s.secrets.forEach(sec=>{
+        const box = document.createElement('div');
+        box.className='col';
+        box.style.minWidth='240px';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'toggle';
+
+        // present toggle
+        const sw = document.createElement('div');
+        sw.className='switch';
+        const inp = document.createElement('input');
+        inp.type='checkbox';
+        inp.checked = sec.present;
+        const track = document.createElement('div');
+        track.className='track';
+        const knob = document.createElement('div');
+        knob.className='knob';
+        track.appendChild(knob);
+        sw.appendChild(inp);
+        sw.appendChild(track);
+
+        inp.onchange = ()=>{
+          sec.present = inp.checked;
+          // if removed, also clear rotation
+          if(!sec.present) sec.rotated=false;
+          // scenario needs rebuild for new exposure set
+          if(state.started){
+            buildScenario(state);
+            state.started = true;
+            addLog(state,'SYSTEM','Scenario rebuilt due to secrets inventory change.');
+          }
+          syncAll();
+        };
+
+        const meta = document.createElement('div');
+        meta.innerHTML = `<b>${sec.label}</b><div class="hint">severity ${(sec.severity*100).toFixed(0)}%</div>`;
+
+        // rotate button
+        const rot = document.createElement('button');
+        rot.className = 'smallBtn';
+        rot.textContent = sec.rotated ? 'Rotated' : 'Rotate';
+        rot.style.marginLeft='auto';
+        rot.disabled = !sec.present;
+        rot.onclick = ()=>{
+          if(!sec.present) return;
+          sec.rotated = !sec.rotated;
+          addLog(state, 'ACTION', `${sec.rotated?'Rotated':'Un-rotated'}: ${sec.label}`);
+          syncAll();
+        };
+
+        wrap.appendChild(sw);
+        wrap.appendChild(meta);
+        wrap.appendChild(rot);
+
+        box.appendChild(wrap);
+        host.appendChild(box);
+      });
+    }
+
+    function renderMetrics(s){
+      const {risk, remainingSecrets} = computeRisk(s);
+      $('#riskScore').textContent = risk.toFixed(1);
+      $('#secretsExposed').textContent = `${s.metrics.secretsExposed}`;
+      $('#ttd').textContent = s.metrics.ttd===null ? '—' : fmtMin(s.metrics.ttd);
+      $('#cost').textContent = `${estimateContainmentCost(s)} pts`;
+
+      const pct = clamp(risk/100, 0, 1);
+      $('#riskBar').style.width = `${Math.max(2, pct*100)}%`;
+      // colorize
+      const bar = $('#riskBar');
+      if(risk>75){
+        bar.style.background = 'linear-gradient(90deg, rgba(255,77,109,0.95), rgba(167,139,250,0.75))';
+      }else if(risk>45){
+        bar.style.background = 'linear-gradient(90deg, rgba(255,183,3,0.95), rgba(34,211,238,0.75))';
+      }else{
+        bar.style.background = 'linear-gradient(90deg, rgba(74,222,128,0.95), rgba(34,211,238,0.75))';
+      }
+
+      // status pill
+      const st = $('#statusText');
+      const dot = $('#statusDot');
+      if(!s.started){
+        st.textContent = 'Ready';
+        dot.style.background = 'var(--good)';
+      }else if(risk>75){
+        st.textContent = 'Critical';
+        dot.style.background = 'var(--bad)';
+      }else if(risk>45){
+        st.textContent = 'Elevated';
+        dot.style.background = 'var(--warn)';
+      }else{
+        st.textContent = 'Contained';
+        dot.style.background = 'var(--good)';
+      }
+
+      // rotation planner
+      const rot = rotationCompleteness(s);
+      $('#rotPct').textContent = `${Math.round(rot*100)}%`;
+      const residual = clamp(risk * (1-rot*0.65), 0, 100);
+      $('#residual').textContent = residual.toFixed(1);
+
+      // small callouts in log based on remaining secrets
+      if(s.started && remainingSecrets>0 && s.controls.rotationStarted){
+        // Occasionally remind
+        if(chance(s.rng, 0.03)) addLog(s,'HINT', `Rotation incomplete: ${remainingSecrets} exposed secrets still not rotated.`);
+      }
+    }
+
+    function syncAll(){
+      // Pull latest input values
+      state.pkgName = $('#pkgName').value.trim() || 'package';
+      state.pkgVersion = $('#pkgVersion').value.trim() || '0.0.0';
+      state.footprint = $('#footprint').value;
+      state.scenario = $('#scenarioPreset').value;
+      state.team = $('#teamPreset').value;
+      state.toggles.edr = $('#tEDR').checked;
+      state.toggles.egress = $('#tEgress').checked;
+      state.toggles.pinning = $('#tPinning').checked;
+
+      // When not started, keep UI estimates updated by rebuilding scenario preview silently.
+      if(!state.started){
+        const tmp = deepCloneState(state);
+        buildScenario(tmp);
+        // copy preview metrics
+        state.metrics.baseRisk = tmp.metrics.baseRisk;
+        state.metrics.secretsExposed = tmp.metrics.secretsExposed;
+        state._exposedSecretIds = tmp._exposedSecretIds;
+      }
+
+      renderSignals(state);
+      renderActions(state);
+      renderSecrets(state);
+      renderMetrics(state);
+      renderTimeline(state);
+
+      // store snapshot in URL hash in a compact way
+      persistToHash(state);
+    }
+
+    function deepCloneState(s){
+      return safeJsonParse(JSON.stringify(s), baseState());
+    }
+
+    // ------------------------------
+    // Time progression
+    // ------------------------------
+
+    function advance(s, minutes){
+      if(!s.started){
+        toast('Start first', 'Click Start scenario to begin the simulation.');
+        return;
+      }
+      const prev = s.t;
+      s.t = clamp(s.t + minutes, 0, 24*60);
+
+      // reveal notices
+      s.noticed.forEach(n=>{
+        if(!n.shown && n.at<=s.t){
+          n.shown=true;
+          addLog(s, 'NOTICE', n.msg);
+        }
+      });
+
+      // Show ground-truth events when passed, but only as subtle "world" entries
+      s.events.forEach(e=>{
+        if(e.at>prev && e.at<=s.t){
+          // we do not show full details; only small hints.
+          if(e.kind==='SYSTEM'){
+            addLog(s, 'WORLD', e.msg);
+          }
+          if(e.kind==='INFO' && chance(s.rng, 0.30)){
+            addLog(s, 'WORLD', 'Chatter increases on security channels about a dependency issue.');
+          }
+          if(e.kind==='ATTACK' && chance(s.rng, 0.22)){
+            addLog(s, 'WORLD', 'A background process briefly spikes CPU.');
+          }
+        }
+      });
+
+      // update signals each tick
+      updateSignals(s);
+
+      // slight drift in persistence confidence depending on actions
+      if(s.controls.hunted) s.metrics.persistenceConfidence = clamp(s.metrics.persistenceConfidence + 0.02, 0, 1);
+
+      syncAll();
+    }
+
+    // ------------------------------
+    // Export + share
+    // ------------------------------
+
+    function buildReport(s){
+      const {risk, exposedCount, remainingSecrets} = computeRisk(s);
+      const report = {
+        generated_at: nowISO(),
+        trend: TREND,
+        scenario: {
+          preset: s.scenario,
+          team: s.team,
+          footprint: s.footprint,
+          pkg: { name: s.pkgName, version: s.pkgVersion, safe_version: s.safeVersion },
+          toggles: s.toggles,
+          seed: s.seed,
+          narrative: s.narrative,
+        },
+        metrics: {
+          risk_score: +risk.toFixed(2),
+          base_risk: +s.metrics.baseRisk.toFixed(2),
+          time_to_detection_min: s.metrics.ttd,
+          containment_cost_points: estimateContainmentCost(s),
+          secrets_exposed_estimate: s.metrics.secretsExposed,
+          exposed_secrets_required_rotations: exposedCount,
+          remaining_unrotated_exposed: remainingSecrets,
+          rotation_completeness: +rotationCompleteness(s).toFixed(2),
+        },
+        actions_taken: Object.entries(s.controls).filter(([k,v])=>v).map(([k])=>k),
+        signals: s.signals.map(sig=>({ id:sig.id, label:sig.label, status:sig.status, confidence:+sig.conf.toFixed(2), discovered_at_min:sig.discoveredAt })),
+        rotation_notes: $('#rotationNotes').value,
+        event_log: $('#log').textContent.split('\n').slice(-400),
+        postmortem: $('#postmortem').value,
+        notes: [
+          'Educational simulation. No real packages were downloaded or executed.',
+          `Source inspiration: ${TREND.url}`
+        ]
+      };
+      return report;
+    }
+
+    function exportReport(){
+      const rep = buildReport(state);
+      const blob = new Blob([JSON.stringify(rep, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `supplychain_sentinel_report_${TREND.date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('Exported', 'Downloaded a JSON incident report.');
+    }
+
+    function persistToHash(s){
+      // Keep it compact but readable.
+      const payload = {
+        scn: s.scenario,
+        team: s.team,
+        fp: s.footprint,
+        pkg: s.pkgName,
+        ver: s.pkgVersion,
+        edr: s.toggles.edr?1:0,
+        egr: s.toggles.egress?1:0,
+        pin: s.toggles.pinning?1:0,
+      };
+      const enc = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const short = enc.replace(/=+$/,'');
+      location.hash = short;
+    }
+
+    function restoreFromHash(){
+      const h = location.hash.replace('#','').trim();
+      if(!h) return;
+      const padded = h + '==='.slice((h.length % 4) || 4);
+      let decoded = null;
+      try{
+        decoded = decodeURIComponent(escape(atob(padded)));
+      }catch(e){ return; }
+      const payload = safeJsonParse(decoded, null);
+      if(!payload) return;
+
+      if(payload.scn) $('#scenarioPreset').value = payload.scn;
+      if(payload.team) $('#teamPreset').value = payload.team;
+      if(payload.fp) $('#footprint').value = payload.fp;
+      if(payload.pkg) $('#pkgName').value = payload.pkg;
+      if(payload.ver) $('#pkgVersion').value = payload.ver;
+      if(typeof payload.edr==='number') $('#tEDR').checked = !!payload.edr;
+      if(typeof payload.egr==='number') $('#tEgress').checked = !!payload.egr;
+      if(typeof payload.pin==='number') $('#tPinning').checked = !!payload.pin;
+    }
+
+    function shareScenarioLink(){
+      const url = location.href;
+      copyText(url).then(ok=>{
+        toast(ok?'Copied':'Copy failed', ok?'Scenario link copied.':'Your browser blocked clipboard access; copy from the address bar.');
+      });
+    }
+
+    // ------------------------------
+    // Postmortem generation (local template engine)
+    // ------------------------------
+
+    function generatePostmortem(){
+      if(!state.started){
+        toast('Start first', 'Run a scenario before generating a postmortem.');
+        return;
+      }
+
+      const rep = buildReport(state);
+      const risk = rep.metrics.risk_score;
+      const sev = risk>75 ? 'SEV-1' : (risk>45 ? 'SEV-2' : 'SEV-3');
+      const ttd = rep.metrics.time_to_detection_min===null ? 'unknown' : fmtMin(rep.metrics.time_to_detection_min);
+      const actions = rep.actions_taken.length ? rep.actions_taken.join(', ') : 'none';
+      const rot = Math.round(rep.metrics.rotation_completeness*100);
+      const exposed = rep.metrics.secrets_exposed_estimate;
+      const footprint = footprintName(rep.scenario.footprint);
+
+      const prompt = $('#pmPrompt').value;
+
+      // Small, deterministic filler sentences based on seed.
+      const rng = mulberry32(rep.scenario.seed);
+      const impactPhrases = [
+        'We observed elevated risk of credential exposure from a compromised dependency used in our AI proxy stack.',
+        'A dependency compromise introduced unauthorized outbound activity consistent with secret harvesting.',
+        'Our AI proxy service inherited risk through a malicious package release in the Python ecosystem.'
+      ];
+      const detectPhrases = [
+        'Detection occurred via a combination of telemetry and anomaly review during on-call.',
+        'Signals were initially weak and required correlation across logs and advisory information.',
+        'The first actionable alert was generated by monitoring and escalated through the incident channel.'
+      ];
+      const containPhrases = [
+        'We contained the incident by rolling back to a known-good version and isolating impacted workloads.',
+        'Containment focused on stopping further execution and preventing additional secret access.',
+        'We prioritized limiting blast radius while preserving evidence for root cause analysis.'
+      ];
+      const preventPhrases = [
+        'We are strengthening dependency hygiene (pinning, provenance, reproducible builds) and improving egress visibility.',
+        'We will reduce future exposure via tighter CI controls, artifact integrity checks, and secret-scoping.',
+        'Preventative actions include faster advisory ingestion, allowlisted egress, and improved key rotation automation.'
+      ];
+
+      const draft =
+`Postmortem: Supply chain compromise simulation (${sev})\n\n` +
+`Prompt (internal): ${prompt}\n\n` +
+`Summary\n` +
+`- Severity: ${sev}\n` +
+`- Footprint: ${footprint}\n` +
+`- Package: ${rep.scenario.pkg.name}@${rep.scenario.pkg.version} (rolled back target: ${rep.scenario.pkg.safe_version})\n` +
+`- Estimated secrets exposed: ${exposed}\n` +
+`- Time to detection: ${ttd}\n` +
+`- Rotation completeness: ${rot}%\n\n` +
+`Impact\n` +
+`- ${pick(rng, impactPhrases)}\n` +
+`- Customer impact in this simulation: ${risk>60 ? 'potential service degradation and credential misuse risk' : 'limited, primarily preventative containment'}\n\n` +
+`Detection\n` +
+`- ${pick(rng, detectPhrases)}\n` +
+`- Signals observed: ${rep.signals.filter(s=>s.status!=='unknown').map(s=>s.label).join('; ') || 'none (insufficient telemetry)'}\n\n` +
+`Containment and eradication\n` +
+`- ${pick(rng, containPhrases)}\n` +
+`- Actions taken: ${actions}\n\n` +
+`Recovery\n` +
+`- Rebuilt workloads from clean sources and verified outbound traffic baselines.\n` +
+`- Performed key rotation according to runbook and validated access patterns.\n\n` +
+`Preventative actions\n` +
+`- ${pick(rng, preventPhrases)}\n` +
+`- Add continuous checks: dependency diff alerts, SBOM attestation, and quarantine automation.\n\n` +
+`Source inspiration\n` +
+`- ${TREND.title}\n` +
+`- ${TREND.url}\n`;
+
+      $('#postmortem').value = draft;
+      toast('Generated', 'A postmortem draft was generated locally.');
+    }
+
+    function copyPostmortem(){
+      const text = $('#postmortem').value.trim();
+      if(!text){ toast('Nothing to copy', 'Generate a draft first.'); return; }
+      copyText(text).then(ok=>{
+        toast(ok?'Copied':'Copy failed', ok?'Postmortem copied to clipboard.':'Clipboard blocked; select and copy manually.');
+      });
+    }
+
+    // ------------------------------
+    // Start / reset
+    // ------------------------------
+
+    function resetAll(){
+      clearInterval(autoTimer);
+      autoTimer = null;
+      $('#btnAuto').textContent = 'Auto-run';
+
+      state = baseState();
+      $('#log').textContent='';
+      restoreFromHash();
+
+      // sync the secrets toggles from state
+      // (we keep defaults; user can change later)
+
+      syncAll();
+      toast('Reset', 'Scenario cleared. Configure options and start again.');
+    }
+
+    function startScenario(){
+      // initialize state from UI
+      state.started = false;
+      syncAll();
+
+      // lock scenario generation using current values
+      buildScenario(state);
+      state.started = true;
+      state.t = 0;
+
+      addLog(state, 'SYSTEM', `Incident started for ${state.pkgName}@${state.pkgVersion} on ${footprintName(state.footprint)}.`);
+      addLog(state, 'SYSTEM', 'Advance time to see what your telemetry catches.');
+
+      // small immediate notice
+      addNotice(state, 3, 'Pager triggers: "Possible anomaly in AI proxy service."');
+      syncAll();
+      toast('Scenario started', 'Advance time and take actions in the response console.');
+    }
+
+    // ------------------------------
+    // Wire up UI
+    // ------------------------------
+
+    let state = baseState();
+    let autoTimer = null;
+
+    function bind(){
+      // inputs
+      ['scenarioPreset','teamPreset','pkgName','pkgVersion','footprint','tEDR','tEgress','tPinning'].forEach(id=>{
+        const el = $('#'+id);
+        el.addEventListener('input', ()=>syncAll());
+        el.addEventListener('change', ()=>syncAll());
+      });
+
+      // buttons
+      $('#btnStart').onclick = startScenario;
+      $('#btnReset').onclick = resetAll;
+      $('#btnAdvance').onclick = ()=>advance(state, 15);
+      $('#btnExport').onclick = exportReport;
+      $('#btnShare').onclick = shareScenarioLink;
+      $('#btnGenerate').onclick = generatePostmortem;
+      $('#btnCopyPost').onclick = copyPostmortem;
+
+      $('#btnHelp').onclick = ()=>{ $('#helpModal').classList.add('show'); $('#helpModal').setAttribute('aria-hidden','false'); };
+      $('#btnCloseHelp').onclick = ()=>{ $('#helpModal').classList.remove('show'); $('#helpModal').setAttribute('aria-hidden','true'); };
+      $('#helpModal').onclick = (e)=>{ if(e.target.id==='helpModal'){ $('#btnCloseHelp').click(); } };
+
+      $('#btnAuto').onclick = ()=>{
+        if(autoTimer){
+          clearInterval(autoTimer);
+          autoTimer=null;
+          $('#btnAuto').textContent='Auto-run';
+          toast('Auto-run stopped', 'Manual control restored.');
+        }else{
+          autoTimer = setInterval(()=>advance(state, 15), 900);
+          $('#btnAuto').textContent='Stop auto';
+          toast('Auto-run', 'Advancing time every 0.9s.');
+        }
+      };
+
+      // keyboard shortcuts
+      document.addEventListener('keydown', (e)=>{
+        if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)){
+          // allow shortcuts with ctrl/cmd
+          if(!(e.ctrlKey || e.metaKey)) return;
+        }
+
+        if(e.code==='Space'){
+          e.preventDefault();
+          advance(state, 15);
+        }
+        if(e.key==='r' || e.key==='R') resetAll();
+        if(e.key==='s' || e.key==='S') exportReport();
+        if(e.key==='g' || e.key==='G') generatePostmortem();
+      });
+
+      // resize timeline
+      window.addEventListener('resize', ()=>renderTimeline(state));
+    }
+
+    // ------------------------------
+    // Initialize
+    // ------------------------------
+
+    restoreFromHash();
+    bind();
+    syncAll();
+
+    // Intro log
+    addLog(state, 'SYSTEM', 'Welcome to SupplyChain Sentinel. Configure options and start a scenario.');
+    addLog(state, 'SYSTEM', `Trend: ${TREND.title}`);
+    addLog(state, 'SYSTEM', `Inspiration URL: ${TREND.url}`);
+
+  </script>
+</body>
+</html>
